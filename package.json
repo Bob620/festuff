@@ -1,0 +1,13 @@
+{
+  "name": "festuff",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Bob620",
+  "email": "bruder.kraft225@gmail.com",
+  "license": "MIT"
+}
