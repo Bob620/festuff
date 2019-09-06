@@ -11,8 +11,6 @@
   "email": "bruder.kraft225@gmail.com",
   "license": "MIT",
   "dependencies": {
-    "gaussian-fit": "^1.0.0",
-    "gaussianMixture": "^0.9.0",
-    "gaussian": "latest"
+    "gaussian-fit": "^1.0.0"
   }
 }
