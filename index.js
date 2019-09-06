@@ -1,7 +1,12 @@
 const fsPromise = require('fs').promises;
 
+const gaussianFit = require('gaussian-fit');
+
 //fe range: 1020 - 1200 (qlw)
 //fe peak range: 1070 - 1150
+const feLineStart = 1020;
+const feLineEnd = 1200;
+
 const input = '//EPMA-NAS/data/Noah/SXES_Fe/2019-08-13/fe_stuff/qlw_test.xes';
 const output = '//EPMA-NAS/data/Noah/SXES_Fe/2019-08-13/fe_stuff/qlw_test.data';
 
@@ -14,7 +19,7 @@ fsPromise.readFile(input, {encoding: 'utf8'}).then(async rawData => {
 			name,
 			spectra,
 			flags,
-			line: spectra.slice(1020, 1200).reverse()
+			line: spectra.slice(feLineStart, feLineEnd).reverse()
 		}
 	});
 
@@ -72,6 +77,7 @@ fsPromise.readFile(input, {encoding: 'utf8'}).then(async rawData => {
 				}
 			} else if (index < ((integratedLine.length / 8) * 5)) {
 				highs.alphaPeak = highs.betaPeak;
+				highs.alphaPeak.start = highs.alphaPeak.start - (highs.alphaPeak.start < 20 ? highs.alphaPeak.start - 1 : 17);
 				highs.betaPeak = {value: 0, start: -1, index: 0, end: -1, passedZero: 0, zeros: []};
 			}
 			return highs;
@@ -94,6 +100,29 @@ fsPromise.readFile(input, {encoding: 'utf8'}).then(async rawData => {
 			flags,
 			spectra,
 			selfPeakRatio: Math.abs(line[betaPeak.index]/line[alphaPeak.index])}
+	}).map(({highs: {alphaPeak, betaPeak, lowEdge, highEdge}, integratedLine, line, name, flags, spectra, selfPeakRatio}) => {
+		const getPosBackground = makeBackground(line, alphaPeak, betaPeak, lowEdge, highEdge);
+		const backgroundCorrectedLine = line.map((value, index) =>
+			value - getPosBackground(index)
+		);
+
+		const alphaFits = gaussianFit(backgroundCorrectedLine.slice(alphaPeak.start, alphaPeak.end), {components: [{weight: 1, mean: 1, variance: 1}],
+			maxNumber: 200,
+			maxIterations: 1000,
+			tolerance: 1e-9
+		});
+		const betaFits = gaussianFit(backgroundCorrectedLine.slice(betaPeak.start, betaPeak.end), {components: [{weight: 1, mean: 1, variance: 1}],
+			maxNumber: 200,
+			maxIterations: 1000,
+			tolerance: 1e-9
+		});
+
+		alphaPeak.fwhm = Math.sqrt(alphaFits[0].variance) * 2.3548;
+		betaPeak.fwhm = Math.sqrt(betaFits[0].variance) * 2.3548;
+		alphaPeak.gausPeak = alphaPeak.start + (alphaPeak.end - alphaPeak.start) * alphaFits[0].mean;
+		betaPeak.gausPeak = betaPeak.start + (betaPeak.end - betaPeak.start) * betaFits[0].mean;
+
+		return {highs: {alphaPeak, betaPeak, lowEdge, highEdge}, integratedLine, line, backgroundCorrectedLine, name, flags, spectra, selfPeakRatio};
 	});
 
 	const fe0 = basisLines.filter(({flags}) => flags.includes('fe0'))[0];
@@ -105,15 +134,7 @@ fsPromise.readFile(input, {encoding: 'utf8'}).then(async rawData => {
 		value - fe0Background(index)
 	).reduce((total, current) => total + current, 0);
 
-	const runSet = basisLines.map(({highs: {alphaPeak, betaPeak, lowEdge, highEdge}, integratedLine, line, name, flags, spectra, selfPeakRatio}) => {
-		//const diffLineFe0 = fe0.highs.integratedLine.map((value, index) => Math.abs(value - integratedLine[index]));
-		//const diffLineFe2 = fe2.highs.integratedLine.map((value, index) => Math.abs(value - integratedLine[index]));
-		//const diffLineFe3 = fe3.highs.integratedLine.map((value, index) => Math.abs(value - integratedLine[index]));
-
-		//const maxDiffFe0 = findMaxDiffsIndex(diffLineFe0, fe0.highs.alphaPeak.zeros[1]);
-		//const maxDiffFe2 = findMaxDiffsIndex(diffLineFe2, fe2.highs.alphaPeak.zeros[1]);
-		//const maxDiffFe3 = findMaxDiffsIndex(diffLineFe3, fe3.highs.alphaPeak.zeros[1]);
-
+	const runSet = basisLines.map(({highs: {alphaPeak, betaPeak, lowEdge, highEdge}, integratedLine, line, backgroundCorrectedLine, name, flags, spectra, selfPeakRatio}) => {
 		const flankRatio = Math.abs(line[betaIndex]/line[alphaIndex]);
 
 		const getPosBackground = makeBackground(line, alphaPeak, betaPeak, lowEdge, highEdge);
@@ -121,21 +142,41 @@ fsPromise.readFile(input, {encoding: 'utf8'}).then(async rawData => {
 			value - getPosBackground(index)
 		).reduce((total, current) => total + current, 0) / maxAreaUnder;
 
-		return {highs: {alphaPeak, betaPeak, integratedLine, lowEdge, highEdge}, line, name, flags, spectra, ratios: {selfPeakRatio, flankRatio, areaUnderRatio}}
+		return {
+			highs: {
+				alphaPeak,
+				betaPeak,
+				integratedLine,
+				lowEdge,
+				highEdge
+			},
+			line,
+			backgroundCorrectedLine,
+			name,
+			flags,
+			spectra,
+			ratios: {
+				selfPeakRatio,
+				flankRatio,
+				areaUnderRatio,
+				fwhmRatio: betaPeak.fwhm/alphaPeak.fwhm,
+				centerRatio: betaPeak.gausPeak/alphaPeak.gausPeak
+			}
+		}
 	});
 
 	console.log(runSet);
 
-	await fsPromise.writeFile(output,  JSON.stringify(runSet.map(({ratios}) => ratios)));
+	await fsPromise.writeFile(output,  JSON.stringify(runSet));
 }).catch(err => {
 	console.warn(err);
 });
 
 function makeBackground(line, alphaPeak, betaPeak, lowEdge, highEdge) {
-	const func = ((line[alphaPeak.start] + lowEdge) - (line[betaPeak.end] + highEdge)) / line.length;
-	return (pos) => {
-		return func * pos;
-	}
+	const lowPoint = line[alphaPeak.start] + lowEdge;
+	const highPoint = line[betaPeak.end] + highEdge;
+	const posChange = (highPoint - lowPoint) / line.length;
+	return (pos) => lowPoint + (posChange * pos);
 }
 
 function findMaxDiffsIndex(diffLine, zeroPos) {

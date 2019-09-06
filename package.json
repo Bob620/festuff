@@ -9,5 +9,10 @@
   "keywords": [],
   "author": "Bob620",
   "email": "bruder.kraft225@gmail.com",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "gaussian-fit": "^1.0.0",
+    "gaussianMixture": "^0.9.0",
+    "gaussian": "latest"
+  }
 }
