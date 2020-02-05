@@ -68,12 +68,12 @@ export class IterSlice extends IterBasis {
 		const offsetIndex = parseInt(pos) + this.data.start;
 
 		if (offsetIndex < this.data.end)
-			return this.data.iter.getPos(pos);
+			return this.data.iter.getPos(offsetIndex);
 	}
 }
 
 export class BasicIter extends IterBasis {
-	constructor({changeFunc = pos => pos, length = 0, history = new History()}={}) {
+	constructor({changeFunc = pos => pos, length = 0, history = new History(length)}={}) {
 		super(length, {
 			changeFunc,
 			history,
