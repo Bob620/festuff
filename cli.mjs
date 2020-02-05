@@ -11,38 +11,62 @@
 //
 // Load spec1, spec2 -> Range Subtraction -> Min/Max
 
-import commandJson from './commands.json';
 import constants from './constants.json';
-import optionsJson from './options.json';
+import commandJson from './commands.json';
 
 import {ArrayIter} from "./util/interator.mjs";
 
-let env = {};
+const allToFull = Object.entries(commandJson).reduce((full, [command, {short}]) => {
+	full[short] = command;
+	full[command] = command;
+	return full;
+}, {});
 
 const args = process.argv.slice(2);
 
-args.reduce(([commands, last], item) => {
+const commands = args.reduce(([commands, last], item) => {
 	let data = undefined;
 
-	if (last) {
-
+	if (last !== undefined) {
+		last.argument = item;
+		commands.push(last);
 	} else if (item.startsWith('-')) {
-		const name = item.slice(1);
-		const type = commandJson[name];
+		const [name, ...attached] = item.slice(1).split(':');
+		let type = commandJson[allToFull[name]];
 
-		if (type === undefined)
-			throw `Unknown command '${name}'`;
+		if (type === undefined && typeof type !== "object")
+			throw `Unknown argument '${name}' with attached arguments '${attached.join(':')}'`;
+
+		if (type.minAttached > attached.length)
+			throw `Not enough attached arguments on '${name}:${attached.join(':')}'`;
 
 		data = {
 			name,
-			type,
-			validArgs: type.arguments.map(e => e.name),
-			args: {}
+			calls: type.calls,
+			argument: type.argument,
+			attached: type.attached.map(({type, default: defaultValue}, index) => sanitizeValue(attached[index], type, defaultValue))
 		};
 	} else
 		throw `Unknown argument '${item}'`;
 
 	return [commands, data];
-}, [[], undefined]);
+}, [[], undefined])[0];
 
-console.log();
+function sanitizeValue(value, type, defaultValue) {
+	if (value !== undefined)
+		switch(type) {
+			case 'string':
+				return value;
+			case 'number':
+				return parseInt(value);
+			case 'range':
+				if (value === '')
+					return [0, 0];
+				const [a, b] = value.split('-');
+				return [parseInt(a), b ? parseInt(b) : 0];
+		}
+
+	return defaultValue;
+}
+
+console.log(commands);

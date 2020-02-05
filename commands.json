@@ -2,36 +2,37 @@
   "load": {
     "calls": "loadSpec",
     "short": "l",
-    "arguments": [
-      {
-        "name": "uri",
-        "optional": false
-      },
+    "argument": {
+      "name": "uri",
+      "type": "string"
+    },
+    "minAttached": 1,
+    "attached": [
       {
         "name": "specName",
-        "optional": false
+        "type": "string",
+        "default": ""
       }
     ]
   },
-  "range": {
-    "calls": "makeRange",
-    "short": "r",
-    "arguments": [
+  "slice": {
+    "calls": "makeSlice",
+    "short": "s",
+    "argument": {
+      "name": "newName",
+      "type": "string"
+    },
+    "minAttached": 1,
+    "attached": [
       {
         "name": "specName",
-        "optional": false
+        "type": "string",
+        "default": ""
       },
       {
-        "name": "newName",
-        "optional": false
-      },
-      {
-        "name": "start",
-        "optional": true
-      },
-      {
-        "name": "end",
-        "optional": true
+        "name": "range",
+        "type": "range",
+        "default": [0, 0]
       }
     ]
   }
