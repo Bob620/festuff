@@ -10,7 +10,10 @@ export function linearBackground(leftIndex = 0, rightIndex = 0, line = [0]) {
 
 	const changeFunc = (change, initial, current) => initial + (change * current);
 
-	return new BasicIter(changeFunc.bind(undefined, change, initial), length);
+	return new BasicIter({
+		changeFunc: changeFunc.bind(undefined, change, initial),
+		length
+	});
 }
 
 export default {

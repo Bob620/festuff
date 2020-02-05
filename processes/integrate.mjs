@@ -1,12 +1,16 @@
 import {BasicIter} from "../util/interator.mjs";
 
 export function basicIntegration(line = [0]) {
-	const integratedLine = line.reduce(([integrated, last], current) => {
-		integrated.push(current - last);
-		return [integrated, current];
-	}, [[], line[0]])[0];
+	const integrate = (line, pos) => {
+		if (pos > 0)
+			return line.get(pos) - line.get(pos - 1);
+		return 0;
+	};
 
-	return new BasicIter(e => e, integratedLine.length, integratedLine);
+	return new BasicIter({
+		changeFunc: integrate.bind(undefined, line),
+		length: line.length
+	});
 }
 
 export default {
