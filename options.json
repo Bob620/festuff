@@ -1,0 +1,22 @@
+{
+  "uri": {
+    "type": "string",
+    "default": ""
+  },
+  "specName": {
+    "type": "string",
+    "default": ""
+  },
+  "newName": {
+    "type": "string",
+    "default": ""
+  },
+  "start": {
+    "type": "number",
+    "default": 0
+  },
+  "end": {
+    "type": "number",
+    "default": 0
+  }
+}
