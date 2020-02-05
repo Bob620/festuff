@@ -1,0 +1,42 @@
+{
+  "load": {
+    "arguments": [
+      {
+        "name": "uri",
+        "type": "string",
+        "optional": false
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "optional": false
+      }
+    ],
+    "calls": "loadSpec"
+  },
+  "range": {
+    "arguments": [
+      {
+        "name": "specName",
+        "type": "string",
+        "optional": false
+      },
+      {
+        "name": "start",
+        "type": "number",
+        "optional": true
+      },
+      {
+        "name": "end",
+        "type": "number",
+        "optional": true
+      },
+      {
+        "name": "newName",
+        "type": "string",
+        "optional": false
+      }
+    ],
+    "calls": "makeRange"
+  }
+}
