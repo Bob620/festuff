@@ -1,14 +1,85 @@
-export class BasicIter {
-	constructor(changeFunc = pos => pos, length = 0, history = new Map()) {
-		this.data = {
-			changeFunc,
-			length,
-			history,
-			current: 0
+import {History} from "./history.mjs";
+
+class IterBasis {
+	constructor(length, dataContext = {}) {
+		dataContext.length = length;
+		dataContext.current = 0;
+		this.data = dataContext;
+	}
+
+	[Symbol.iterator] = () => {
+		return this.slice();
+	};
+
+	get length() {
+		return this.data.length;
+	}
+
+	slice(start = 0, end = this.data.length) {
+		return new IterSlice(this, start, end);
+	}
+
+	concat(...others) {
+		return new MultiIter(this, ...others);
+	}
+
+	get(pos) {
+		return this.getPos(pos);
+	}
+
+	getPos(pos) {
+		return pos;
+	}
+
+	next() {
+		let done = false;
+		let pos = this.data.current;
+
+		if (this.length >= this.data.current + 1)
+			this.data.current += 1;
+		else
+			done = true;
+
+		return {
+			done,
+			value: done ? undefined : this.getPos(pos)
 		}
 	}
 
-	length = this.data.length;
+	toArray() {
+		let arr = [];
+		for (const value of this)
+			arr.push(value);
+
+		return arr;
+	}
+}
+
+export class IterSlice extends IterBasis {
+	constructor(iter, start, end) {
+		super(end - start, {
+			iter,
+			end,
+			start
+		});
+	}
+
+	getPos(pos) {
+		const offsetIndex = parseInt(pos) + this.data.start;
+
+		if (offsetIndex < this.data.end)
+			return this.data.iter.getPos(pos);
+	}
+}
+
+export class BasicIter extends IterBasis {
+	constructor({changeFunc = pos => pos, length = 0, history = new History()}={}) {
+		super(length, {
+			changeFunc,
+			history,
+			current: 0
+		});
+	}
 
 	getPos(pos) {
 		if (this.length <= pos)
@@ -17,32 +88,57 @@ export class BasicIter {
 		let value = this.data.history.get(pos);
 		if (value === undefined) {
 			value = this.data.changeFunc(pos);
-			this.data.history.set(pos, JSON.parse(JSON.stringify(value)));
+			this.data.history.add(pos, value);
 		}
 
-		return value;
+		return JSON.parse(JSON.stringify(value));
+	}
+}
+
+export class MultiIter extends IterBasis {
+	constructor(...iters) {
+		const length = iters.reduce((t, i) => t + i.length, 0);
+
+		super(length, {
+			iters,
+			length,
+			current: 0
+		});
 	}
 
-	next() {
-		let done = false;
-		let pos = this.data.current;
+	getPos(pos) {
+		if (this.length <= pos)
+			throw "Out of range";
 
-		if (this.length > this.data.current + 1)
-			this.data.current += 1;
-		else
-			done = true;
-
-		return {
-			done,
-			value: this.getPos(pos)
-		}
+		const [iter, inset] = this.selectIter(pos);
+		return iter.getPos(pos - inset);
 	}
 
-	[Symbol.iterator] = function () {
-		return new BasicIter(this.data.changeFunc, this.data.length, this.data.history);
+	selectIter(index) {
+		let inset = 0;
+		for (const iter of this.data.iters)
+			if (inset + iter.length > index)
+				return [iter, inset];
+			else
+				inset += iter.length;
+	}
+}
+
+export class ArrayIter extends BasicIter {
+	constructor(arr = [0]) {
+		const hist = new History(arr.length);
+		for (const index in arr)
+			hist.add(index, arr[index]);
+
+		super({
+			length: hist.length,
+			history: hist
+		});
 	}
 }
 
 export default {
-	BasicIter
+	BasicIter,
+	ArrayIter,
+	MultiIter
 }
