@@ -13,8 +13,7 @@
 
 import constants from './constants.json';
 import commandJson from './commands.json';
-
-import {ArrayIter} from "./util/interator.mjs";
+import commandFuncs from './commands.mjs';
 
 const allToFull = Object.entries(commandJson).reduce((full, [command, {short}]) => {
 	full[short] = command;
@@ -54,7 +53,7 @@ const commands = args.reduce(([commands, last], item) => {
 
 function sanitizeValue(value, type, defaultValue) {
 	if (value !== undefined)
-		switch(type) {
+		switch (type) {
 			case 'string':
 				return value;
 			case 'number':
@@ -70,3 +69,19 @@ function sanitizeValue(value, type, defaultValue) {
 }
 
 console.log(commands);
+
+const finalEnv = commands.reduce((env, command) => {
+	switch (command.calls) {
+		case 'loadSpec':
+			env.specs[command.attached[0]] = commandFuncs.loadSpec(command.argument);
+			break;
+		case 'makeSlice':
+			env.specs[command.argument] = commandFuncs.makeSlice(env.specs[command.attached[0]], command.attached[1]);
+			break;
+	}
+
+	return env;
+}, constants.defaultCommandEnv);
+
+console.log(finalEnv);
+
