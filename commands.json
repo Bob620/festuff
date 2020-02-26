@@ -2,6 +2,7 @@
   "load": {
     "calls": "loadSpec",
     "short": "l",
+    "description": "Loads a spectrum file as specName",
     "argument": {
       "name": "uri",
       "type": "string"
@@ -18,6 +19,7 @@
   "slice": {
     "calls": "makeSlice",
     "short": "s",
+    "description": "Creates a new spectrum, newName, from specName",
     "argument": {
       "name": "newName",
       "type": "string"
