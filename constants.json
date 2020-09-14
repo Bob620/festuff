@@ -1,5 +1,6 @@
 {
-  "defaultCommandEnv": {
-    "specs": {}
-  }
+	"defaultCommandEnv": {
+		"specs": {},
+		"output": {}
+	}
 }

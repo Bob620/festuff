@@ -1,41 +1,61 @@
 {
-  "load": {
-    "calls": "loadSpec",
-    "short": "l",
-    "description": "Loads a spectrum file as specName",
-    "argument": {
-      "name": "uri",
-      "type": "string"
-    },
-    "minAttached": 1,
-    "attached": [
-      {
-        "name": "specName",
-        "type": "string",
-        "default": ""
-      }
-    ]
-  },
-  "slice": {
-    "calls": "makeSlice",
-    "short": "s",
-    "description": "Creates a new spectrum, newName, from specName",
-    "argument": {
-      "name": "newName",
-      "type": "string"
-    },
-    "minAttached": 1,
-    "attached": [
-      {
-        "name": "specName",
-        "type": "string",
-        "default": ""
-      },
-      {
-        "name": "range",
-        "type": "range",
-        "default": [0, 0]
-      }
-    ]
-  }
+	"load": {
+		"calls": "loadSpec",
+		"short": "l",
+		"description": "Loads a spectrum file as specName",
+		"argument": {
+			"name": "uri",
+			"type": "string"
+		},
+		"minAttached": 1,
+		"attached": [
+			{
+				"name": "specName",
+				"type": "string",
+				"default": ""
+			}
+		]
+	},
+	"slice": {
+		"calls": "makeSlice",
+		"short": "s",
+		"description": "Creates a new spectrum, newName, from specName",
+		"argument": {
+			"name": "newName",
+			"type": "string"
+		},
+		"minAttached": 1,
+		"attached": [
+			{
+				"name": "specName",
+				"type": "string",
+				"default": ""
+			},
+			{
+				"name": "range",
+				"type": "range",
+				"default": [
+					0,
+					0
+				]
+			}
+		]
+	},
+	"peakFit": {
+		"calls": "gaussian",
+		"short": "g",
+		"description": "gaussian peak fit a spectrum",
+		"argument": {
+			"name": "newName",
+			"type": "string"
+		},
+		"minAttached": 1,
+		"attached": [
+			{
+				"name": "specName",
+				"type": "string",
+				"default": ""
+			}
+		]
+	}
 }
