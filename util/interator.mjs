@@ -73,7 +73,7 @@ export class IterSlice extends IterBasis {
 }
 
 export class BasicIter extends IterBasis {
-	constructor({changeFunc = pos => pos, length = 0, history = new History(length)}={}) {
+	constructor({changeFunc = pos => pos, length = 0, history = new History(length)} = {}) {
 		super(length, {
 			changeFunc,
 			history,
