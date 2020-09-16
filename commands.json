@@ -1,18 +1,72 @@
 {
 	"load": {
+		"background": {
+			"calls": "background",
+			"short": "b",
+			"description": "Calculate a background",
+			"argument": {
+				"name": "newName",
+				"type": "string"
+			},
+			"minAttached": 1,
+			"attached": [
+				{
+					"name": "specName",
+					"type": "string"
+				},
+				{
+					"name": "range",
+					"type": "range",
+					"default": [
+						0,
+						0
+					]
+				}
+			]
+		},
+		"gaussian": {
+			"calls": "gaussian",
+			"short": "g",
+			"description": "gaussian peak fit a spectrum",
+			"argument": {
+				"name": "newName",
+				"type": "string"
+			},
+			"minAttached": 1,
+			"attached": [
+				{
+					"name": "specName",
+					"type": "string",
+					"default": ""
+				}
+			]
+		},
 		"calls": "loadSpec",
 		"short": "l",
-		"description": "Loads a spectrum file as specName",
+		"description": "Loads a plzip or pl7z's spectrum as specName",
 		"argument": {
 			"name": "uri",
 			"type": "string"
 		},
-		"minAttached": 1,
+		"minAttached": 2,
 		"attached": [
 			{
-				"name": "specName",
+				"name": "newName",
+				"type": "string"
+			},
+			{
+				"name": "storedName",
+				"type": "string"
+			},
+			{
+				"name": "specType",
 				"type": "string",
-				"default": ""
+				"default": "xes"
+			},
+			{
+				"name": "bin",
+				"type": "number",
+				"default": 0
 			}
 		]
 	},
@@ -38,23 +92,6 @@
 					0,
 					0
 				]
-			}
-		]
-	},
-	"peakFit": {
-		"calls": "gaussian",
-		"short": "g",
-		"description": "gaussian peak fit a spectrum",
-		"argument": {
-			"name": "newName",
-			"type": "string"
-		},
-		"minAttached": 1,
-		"attached": [
-			{
-				"name": "specName",
-				"type": "string",
-				"default": ""
 			}
 		]
 	}

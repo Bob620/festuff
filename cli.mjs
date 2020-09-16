@@ -13,7 +13,10 @@
 
 import constants from './constants.json';
 import commandJson from './commands.json';
-import commandFuncs from './commands.mjs';
+import {gaussianFit} from "./processes/peakfit.mjs";
+import sxes from 'sxes-compressor';
+import {ArrayIter} from "./util/interator.mjs";
+import {linearBackground} from "./processes/background.mjs";
 
 const allToFull = Object.entries(commandJson).reduce((full, [command, {short}]) => {
 	full[short] = command;
@@ -68,20 +71,50 @@ function sanitizeValue(value, type, defaultValue) {
 	return defaultValue;
 }
 
-console.log(commands);
+async function reduce(arr, func, output) {
+	for (const data of arr)
+		output = await func(output, data);
+	return output;
+}
 
-const finalEnv = commands.reduce((env, command) => {
+reduce(commands, async (env, command) => {
 	switch (command.calls) {
+		case 'background':
+			env.specs[command.argument] = linearBackground(command.attached[1][0], command.attached[1][1], env.specs[command.attached[0]]);
+			break;
+		case 'gaussian':
+			env.output[command.argument] = gaussianFit(env.specs[command.attached[0]]);
+			break;
 		case 'loadSpec':
-			env.specs[command.attached[0]] = commandFuncs.loadSpec(command.argument);
+			if (env.sxes[command.argument] === undefined) {
+				env.sxes[command.argument] = new sxes.SxesGroup(command.argument);
+				await env.sxes[command.argument].initialize();
+			}
+
+			const pos = await env.sxes[command.argument].getPosition(command.attached[1]);
+			const types = await pos.getTypes();
+			const wantedType = command.attached[2];
+			const wantedBin = command.attached[3];
+
+			if (types.includes(wantedType)) {
+				const arr = await pos.getType(wantedType);
+				if (arr.bins <= wantedBin)
+					throw new Error('Invalid bin');
+
+				const bin = await arr.get(wantedBin);
+				env.specs[command.attached[0]] = new ArrayIter(bin);
+			} else
+				throw new Error('Unable to find the requested position');
 			break;
 		case 'makeSlice':
-			env.specs[command.argument] = commandFuncs.makeSlice(env.specs[command.attached[0]], command.attached[1]);
+			const [low, high] = command.attached[1];
+			env.specs[command.argument] = env.specs[command.attached[0]].slice(low, high);
 			break;
 	}
 
 	return env;
-}, constants.defaultCommandEnv);
+}, constants.defaultCommandEnv).then(finalEnv => {
+	console.log(finalEnv);
+});
 
-console.log(finalEnv);
 
