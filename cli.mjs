@@ -17,6 +17,7 @@ import {gaussianFit} from "./processes/peakfit.mjs";
 import sxes from 'sxes-compressor';
 import {ArrayIter} from "./util/interator.mjs";
 import {linearBackground} from "./processes/background.mjs";
+import {basicIntegration, duelIntegration} from "./processes/integrate.mjs";
 
 const allToFull = Object.entries(commandJson).reduce((full, [command, {short}]) => {
 	full[short] = command;
@@ -84,6 +85,12 @@ reduce(commands, async (env, command) => {
 			break;
 		case 'gaussian':
 			env.output[command.argument] = gaussianFit(env.specs[command.attached[0]]);
+			break;
+		case 'integrate':
+			if (command.attached[1] === '')
+				env.specs[command.argument] = basicIntegration(env.specs[command.attached[0]]);
+			else
+				env.specs[command.argument] = duelIntegration(env.specs[command.attached[0]], env.specs[command.attached[1]]);
 			break;
 		case 'loadSpec':
 			if (env.sxes[command.argument] === undefined) {

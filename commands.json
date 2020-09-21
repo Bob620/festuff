@@ -1,46 +1,67 @@
 {
-	"load": {
-		"background": {
-			"calls": "background",
-			"short": "b",
-			"description": "Calculate a background",
-			"argument": {
-				"name": "newName",
+	"background": {
+		"calls": "background",
+		"short": "b",
+		"description": "Calculate a background",
+		"argument": {
+			"name": "newName",
+			"type": "string"
+		},
+		"minAttached": 1,
+		"attached": [
+			{
+				"name": "specName",
 				"type": "string"
 			},
-			"minAttached": 1,
-			"attached": [
-				{
-					"name": "specName",
-					"type": "string"
-				},
-				{
-					"name": "range",
-					"type": "range",
-					"default": [
-						0,
-						0
-					]
-				}
-			]
+			{
+				"name": "range",
+				"type": "range",
+				"default": [
+					0,
+					0
+				]
+			}
+		]
+	},
+	"gaussian": {
+		"calls": "gaussian",
+		"short": "g",
+		"description": "gaussian peak fit a spectrum",
+		"argument": {
+			"name": "newName",
+			"type": "string"
 		},
-		"gaussian": {
-			"calls": "gaussian",
-			"short": "g",
-			"description": "gaussian peak fit a spectrum",
-			"argument": {
-				"name": "newName",
+		"minAttached": 1,
+		"attached": [
+			{
+				"name": "specName",
+				"type": "string",
+				"default": ""
+			}
+		]
+	},
+	"integrate": {
+		"calls": "integrate",
+		"short": "i",
+		"description": "Integrate over a line or between a pair of lines",
+		"argument": {
+			"name": "newName",
+			"type": "string"
+		},
+		"minAttached": 1,
+		"attached": [
+			{
+				"name": "specName",
 				"type": "string"
 			},
-			"minAttached": 1,
-			"attached": [
-				{
-					"name": "specName",
-					"type": "string",
-					"default": ""
-				}
-			]
-		},
+			{
+				"name": "specName",
+				"type": "string",
+				"default": ""
+			}
+		]
+	},
+	"loadSpec": {
 		"calls": "loadSpec",
 		"short": "l",
 		"description": "Loads a plzip or pl7z's spectrum as specName",
