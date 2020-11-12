@@ -1,4 +1,4 @@
-import {History} from "./history.mjs";
+import {History} from './history.mjs';
 
 class IterBasis {
 	constructor(length, dataContext = {}) {
@@ -27,8 +27,88 @@ class IterBasis {
 		return this.getPos(pos);
 	}
 
+	getOr(pos, defaultValue = 0) {
+		try {
+			return this.getPos(pos);
+		} catch(e) {
+			return defaultValue;
+		}
+	}
+
 	getPos(pos) {
-		return pos;
+		return this.data[pos];
+	}
+
+	add(iter) {
+		if (typeof iter === 'number')
+			return new BasicIter({
+				changeFunc: pos => this.get(pos) + iter,
+				length: this.length
+			});
+		else
+			return new BasicIter({
+				changeFunc: pos => {
+					const one = this.length > pos ? this.get(pos) : 0;
+					const two = iter.length > pos ? iter.get(pos) : 0;
+
+					return one + two;
+				},
+				length: this.length < iter.length ? iter.length : this.length
+			});
+	}
+
+	subtract(iter) {
+		if (typeof iter === 'number')
+			return new BasicIter({
+				changeFunc: pos => this.get(pos) - iter,
+				length: this.length
+			});
+		else
+			return new BasicIter({
+				changeFunc: pos => {
+					const one = this.length > pos ? this.get(pos) : 0;
+					const two = iter.length > pos ? iter.get(pos) : 0;
+
+					return one - two;
+				},
+				length: this.length < iter.length ? iter.length : this.length
+			});
+	}
+
+	multiply(iter) {
+		if (typeof iter === 'number')
+			return new BasicIter({
+				changeFunc: pos => this.get(pos) * iter,
+				length: this.length
+			});
+		else
+			return new BasicIter({
+				changeFunc: pos => {
+					const one = this.length > pos ? this.get(pos) : 0;
+					const two = iter.length > pos ? iter.get(pos) : 0;
+
+					return one * two;
+				},
+				length: this.length < iter.length ? iter.length : this.length
+			});
+	}
+
+	divide(iter) {
+		if (typeof iter === 'number')
+			return new BasicIter({
+				changeFunc: pos => this.get(pos) / iter,
+				length: this.length
+			});
+		else
+			return new BasicIter({
+				changeFunc: pos => {
+					const one = this.length > pos ? this.get(pos) : 0;
+					const two = iter.length > pos ? iter.get(pos) : 1;
+
+					return one / two;
+				},
+				length: this.length < iter.length ? iter.length : this.length
+			});
 	}
 
 	next() {
@@ -43,7 +123,7 @@ class IterBasis {
 		return {
 			done,
 			value: done ? undefined : this.getPos(pos)
-		}
+		};
 	}
 
 	toArray() {
@@ -83,11 +163,11 @@ export class BasicIter extends IterBasis {
 
 	getPos(pos) {
 		if (this.length <= pos)
-			throw "Out of range";
+			throw 'Out of range';
 
 		let value = this.data.history.get(pos);
 		if (value === undefined) {
-			value = this.data.changeFunc(pos);
+			value = this.data.changeFunc(pos, this.data.history.add.bind(this.data.history));
 			this.data.history.add(pos, value);
 		}
 
@@ -108,7 +188,7 @@ export class MultiIter extends IterBasis {
 
 	getPos(pos) {
 		if (this.length <= pos)
-			throw "Out of range";
+			throw 'Out of range';
 
 		const [iter, inset] = this.selectIter(pos);
 		return iter.getPos(pos - inset);
@@ -141,4 +221,4 @@ export default {
 	BasicIter,
 	ArrayIter,
 	MultiIter
-}
+};
