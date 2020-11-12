@@ -13,11 +13,14 @@
 
 import constants from './constants.json';
 import commandJson from './commands.json';
-import {gaussianFit} from "./processes/peakfit.mjs";
+import {gaussianFit} from './processes/peakfit.mjs';
 import sxes from 'sxes-compressor';
-import {ArrayIter} from "./util/interator.mjs";
-import {linearBackground} from "./processes/background.mjs";
-import {basicIntegration, duelIntegration} from "./processes/integrate.mjs";
+import {ArrayIter} from './util/interator.mjs';
+import {linearBackground} from './processes/background.mjs';
+import {cubicSplineInterpolation, linearInterpolation} from './processes/interpolation.mjs';
+import {savitzkyGolay} from './processes/smooth.mjs';
+import {basicIntegration} from './processes/integrate.mjs';
+import {csvExport} from './util/csv.mjs';
 
 const allToFull = Object.entries(commandJson).reduce((full, [command, {short}]) => {
 	full[short] = command;
@@ -31,23 +34,35 @@ const commands = args.reduce(([commands, last], item) => {
 	let data = undefined;
 
 	if (last !== undefined) {
+		if (last.argument.startsWith)
+			if (!item.startsWith(last.argument.startsWith))
+				item = item + last.argument.startsWith;
+
+		if (last.argument.endsWith)
+			if (!item.endsWith(last.argument.endsWith))
+				item = item + last.argument.endsWith;
+
 		last.argument = item;
 		commands.push(last);
 	} else if (item.startsWith('-')) {
 		const [name, ...attached] = item.slice(1).split(':');
 		let type = commandJson[allToFull[name]];
 
-		if (type === undefined && typeof type !== "object")
+		if (type === undefined && typeof type !== 'object')
 			throw `Unknown argument '${name}' with attached arguments '${attached.join(':')}'`;
 
 		if (type.minAttached > attached.length)
 			throw `Not enough attached arguments on '${name}:${attached.join(':')}'`;
 
+		let parsedAttached = type.attached.map(({type, default: defaultValue}, index) => sanitizeValue(attached[index], type, defaultValue));
+		if (type.attachedRest)
+			parsedAttached.push(attached.slice(type.attached.length).map(value => sanitizeValue(value, type.attachedRest.type)));
+
 		data = {
 			name,
 			calls: type.calls,
 			argument: type.argument,
-			attached: type.attached.map(({type, default: defaultValue}, index) => sanitizeValue(attached[index], type, defaultValue))
+			attached: parsedAttached
 		};
 	} else
 		throw `Unknown argument '${item}'`;
@@ -57,11 +72,13 @@ const commands = args.reduce(([commands, last], item) => {
 
 function sanitizeValue(value, type, defaultValue) {
 	if (value !== undefined)
-		switch (type) {
+		switch(type) {
+			case 'bool':
+				return value === 'true';
 			case 'string':
 				return value;
 			case 'number':
-				return parseInt(value);
+				return value.includes('.') ? parseFloat(value) : parseInt(value);
 			case 'range':
 				if (value === '')
 					return [0, 0];
@@ -79,18 +96,36 @@ async function reduce(arr, func, output) {
 }
 
 reduce(commands, async (env, command) => {
-	switch (command.calls) {
-		case 'background':
-			env.specs[command.argument] = linearBackground(command.attached[1][0], command.attached[1][1], env.specs[command.attached[0]]);
+	switch(command.calls) {
+		case 'add':
+			env.specs[command.argument] = env.specs[command.attached[0]].add(env.specs[command.attached[1]] === undefined ? parseFloat(command.attached[1]) : env.specs[command.attached[1]]);
+			break;
+		case 'calculateBackground':
+			env.specs[command.argument] = linearBackground(env.specs[command.attached[0]], command.attached[1][0], command.attached[1][1]);
+			break;
+		case 'csv':
+			let specs = [];
+			for (const specName of command.attached[0])
+				specs.push({specName, spec: env.specs[specName], frontPad: 0});
+			await csvExport(specs, command.argument);
+			break;
+		case 'cubicSplineInterpolation':
+			env.specs[command.argument] = cubicSplineInterpolation(env.specs[command.attached[0]], command.attached[1]);
+			break;
+		case 'divide':
+			env.specs[command.argument] = env.specs[command.attached[0]].divide(env.specs[command.attached[1]] === undefined ? parseFloat(command.attached[1]) : env.specs[command.attached[1]]);
 			break;
 		case 'gaussian':
 			env.output[command.argument] = gaussianFit(env.specs[command.attached[0]]);
 			break;
 		case 'integrate':
-			if (command.attached[1] === '')
-				env.specs[command.argument] = basicIntegration(env.specs[command.attached[0]]);
-			else
-				env.specs[command.argument] = duelIntegration(env.specs[command.attached[0]], env.specs[command.attached[1]]);
+			env.specs[command.argument] = basicIntegration(env.specs[command.attached[0]]);
+			break;
+		case 'subtract':
+			env.specs[command.argument] = env.specs[command.attached[0]].subtract(env.specs[command.attached[1]] === undefined ? parseFloat(command.attached[1]) : env.specs[command.attached[1]]);
+			break;
+		case 'linearInterpolation':
+			env.specs[command.argument] = linearInterpolation(env.specs[command.attached[0]], command.attached[1]);
 			break;
 		case 'loadSpec':
 			if (env.sxes[command.argument] === undefined) {
@@ -116,6 +151,12 @@ reduce(commands, async (env, command) => {
 		case 'makeSlice':
 			const [low, high] = command.attached[1];
 			env.specs[command.argument] = env.specs[command.attached[0]].slice(low, high);
+			break;
+		case 'multiply':
+			env.specs[command.argument] = env.specs[command.attached[0]].multiply(env.specs[command.attached[1]] === undefined ? parseFloat(command.attached[1]) : env.specs[command.attached[1]]);
+			break;
+		case 'savitzkyGolay':
+			env.specs[command.argument] = savitzkyGolay(env.specs[command.attached[0]], command.attached[1][0], command.attached[1][1], {windowSize: command.attached[2]});
 			break;
 	}
 

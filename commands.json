@@ -1,6 +1,26 @@
 {
-	"background": {
-		"calls": "background",
+	"add": {
+		"calls": "add",
+		"short": "a",
+		"description": "Adds two spectrum or a constant to a spectrum",
+		"argument": {
+			"name": "newName",
+			"type": "string"
+		},
+		"minAttached": 2,
+		"attached": [
+			{
+				"name": "specName",
+				"type": "string"
+			},
+			{
+				"name": "specName",
+				"type": "string"
+			}
+		]
+	},
+	"calcBackground": {
+		"calls": "calculateBackground",
 		"short": "b",
 		"description": "Calculate a background",
 		"argument": {
@@ -23,6 +43,63 @@
 			}
 		]
 	},
+	"csv": {
+		"calls": "csv",
+		"short": "c",
+		"description": "Export spectrum to a csv",
+		"argument": {
+			"name": "outputFileUri",
+			"type": "string",
+			"endsWith": ".csv"
+		},
+		"minAttached": 1,
+		"attachedRest": {
+			"name": "specName",
+			"type": "string"
+		},
+		"attached": []
+	},
+	"cubicSplineInterpolation": {
+		"calls": "cubicSplineInterpolation",
+		"short": "3",
+		"description": "Interpolate a line using a Cubic Spline implementation",
+		"argument": {
+			"name": "newName",
+			"type": "string"
+		},
+		"minAttached": 1,
+		"attached": [
+			{
+				"name": "specName",
+				"type": "string"
+			},
+			{
+				"name": "interp",
+				"type": "number",
+				"default": 1
+			}
+		]
+	},
+	"divide": {
+		"calls": "divide",
+		"short": "d",
+		"description": "Divides two spectrum or a constant to a spectrum",
+		"argument": {
+			"name": "newName",
+			"type": "string"
+		},
+		"minAttached": 2,
+		"attached": [
+			{
+				"name": "specName",
+				"type": "string"
+			},
+			{
+				"name": "specName",
+				"type": "string"
+			}
+		]
+	},
 	"gaussian": {
 		"calls": "gaussian",
 		"short": "g",
@@ -35,8 +112,7 @@
 		"attached": [
 			{
 				"name": "specName",
-				"type": "string",
-				"default": ""
+				"type": "string"
 			}
 		]
 	},
@@ -58,6 +134,27 @@
 				"name": "specName",
 				"type": "string",
 				"default": ""
+			}
+		]
+	},
+	"linearInterpolation": {
+		"calls": "linearInterpolation",
+		"short": "p",
+		"description": "Interpolate a line linearly",
+		"argument": {
+			"name": "newName",
+			"type": "string"
+		},
+		"minAttached": 1,
+		"attached": [
+			{
+				"name": "specName",
+				"type": "string"
+			},
+			{
+				"name": "interp",
+				"type": "number",
+				"default": 1
 			}
 		]
 	},
@@ -91,6 +188,55 @@
 			}
 		]
 	},
+	"multiply": {
+		"calls": "multiply",
+		"short": "m",
+		"description": "Multiples two spectrum or a constant to a spectrum",
+		"argument": {
+			"name": "newName",
+			"type": "string"
+		},
+		"minAttached": 2,
+		"attached": [
+			{
+				"name": "specName",
+				"type": "string"
+			},
+			{
+				"name": "specName",
+				"type": "string"
+			}
+		]
+	},
+	"savitzkyGolay": {
+		"calls": "savitzkyGolay",
+		"short": "z",
+		"description": "Smooth a spectrum with the Savitzky-Golay",
+		"argument": {
+			"name": "newName",
+			"type": "string"
+		},
+		"minAttached": 1,
+		"attached": [
+			{
+				"name": "specName",
+				"type": "string"
+			},
+			{
+				"name": "range",
+				"type": "range",
+				"default": [
+					0,
+					0
+				]
+			},
+			{
+				"name": "windowSize",
+				"type": "number",
+				"default": 15
+			}
+		]
+	},
 	"slice": {
 		"calls": "makeSlice",
 		"short": "s",
@@ -113,6 +259,26 @@
 					0,
 					0
 				]
+			}
+		]
+	},
+	"subtract": {
+		"calls": "subtract",
+		"short": "u",
+		"description": "Subtracts two spectrum or a constant from a spectrum",
+		"argument": {
+			"name": "newName",
+			"type": "string"
+		},
+		"minAttached": 2,
+		"attached": [
+			{
+				"name": "specName",
+				"type": "string"
+			},
+			{
+				"name": "specName",
+				"type": "string"
 			}
 		]
 	}
