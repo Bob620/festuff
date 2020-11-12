@@ -13,6 +13,7 @@
   "license": "MIT",
   "dependencies": {
     "gaussian-fit": "^1.0.0",
+    "ml-savitzky-golay-generalized": "^2.0.2",
     "sxes-compressor": "github:bob620/sxes-compressor"
   }
 }
