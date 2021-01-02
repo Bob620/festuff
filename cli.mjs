@@ -28,7 +28,8 @@ const allToFull = Object.entries(commandJson).reduce((full, [command, {short}]) 
 	return full;
 }, {});
 
-const args = process.argv.slice(2);
+let args = process.argv.slice(2);
+args = args.filter(arg => arg !== '""' && arg.length > 0)
 
 const commands = args.reduce(([commands, last], item) => {
 	let data = undefined;
