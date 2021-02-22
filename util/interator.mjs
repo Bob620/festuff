@@ -1,4 +1,7 @@
+import constants from '../constants.json';
+
 import {History} from './history.mjs';
+import {IterGroup} from './group.mjs';
 
 class IterBasis {
 	constructor(length, dataContext = {}) {
@@ -10,6 +13,10 @@ class IterBasis {
 	[Symbol.iterator] = () => {
 		return this.slice();
 	};
+
+	get type() {
+		return constants.types.iter;
+	}
 
 	get length() {
 		return this.data.length;
@@ -39,6 +46,14 @@ class IterBasis {
 		return this.data[pos];
 	}
 
+	group(...iters) {
+		return new IterGroup(this, ...iters);
+	}
+
+	do(funcToRun, ...args) {
+		return funcToRun(this, ...args);
+	}
+
 	add(iter) {
 		if (typeof iter === 'number')
 			return new BasicIter({
@@ -46,15 +61,28 @@ class IterBasis {
 				length: this.length
 			});
 		else
-			return new BasicIter({
-				changeFunc: pos => {
-					const one = this.length > pos ? this.get(pos) : 0;
-					const two = iter.length > pos ? iter.get(pos) : 0;
+			switch(iter.type) {
+				case constants.types.iter:
+					return new BasicIter({
+						changeFunc: pos => {
+							const one = this.length > pos ? this.get(pos) : 0;
+							const two = iter.length > pos ? iter.get(pos) : 0;
 
-					return one + two;
-				},
-				length: this.length < iter.length ? iter.length : this.length
-			});
+							return one + two;
+						},
+						length: this.length < iter.length ? iter.length : this.length
+					});
+				case constants.types.group:
+					return new BasicIter({
+						changeFunc: pos => {
+							const one = this.length > pos ? this.get(pos) : 0;
+							const two = iter.length > pos ? iter.get(pos).reduce((i, j) => i + j) : 0;
+
+							return one + two;
+						},
+						length: this.length < iter.length ? iter.length : this.length
+					});
+			}
 	}
 
 	subtract(iter) {
@@ -64,15 +92,28 @@ class IterBasis {
 				length: this.length
 			});
 		else
-			return new BasicIter({
-				changeFunc: pos => {
-					const one = this.length > pos ? this.get(pos) : 0;
-					const two = iter.length > pos ? iter.get(pos) : 0;
+			switch(iter.type) {
+				case constants.types.iter:
+					return new BasicIter({
+						changeFunc: pos => {
+							const one = this.length > pos ? this.get(pos) : 0;
+							const two = iter.length > pos ? iter.get(pos) : 0;
 
-					return one - two;
-				},
-				length: this.length < iter.length ? iter.length : this.length
-			});
+							return one - two;
+						},
+						length: this.length < iter.length ? iter.length : this.length
+					});
+				case constants.types.group:
+					return new BasicIter({
+						changeFunc: pos => {
+							const one = this.length > pos ? this.get(pos) : 0;
+							const two = iter.length > pos ? iter.get(pos).reduce((i, j) => i + j) : 0;
+
+							return one - two;
+						},
+						length: this.length < iter.length ? iter.length : this.length
+					});
+			}
 	}
 
 	multiply(iter) {
@@ -82,15 +123,28 @@ class IterBasis {
 				length: this.length
 			});
 		else
-			return new BasicIter({
-				changeFunc: pos => {
-					const one = this.length > pos ? this.get(pos) : 0;
-					const two = iter.length > pos ? iter.get(pos) : 0;
+			switch(iter.type) {
+				case constants.types.iter:
+					return new BasicIter({
+						changeFunc: pos => {
+							const one = this.length > pos ? this.get(pos) : 0;
+							const two = iter.length > pos ? iter.get(pos) : 0;
 
-					return one * two;
-				},
-				length: this.length < iter.length ? iter.length : this.length
-			});
+							return one * two;
+						},
+						length: this.length < iter.length ? iter.length : this.length
+					});
+				case constants.types.group:
+					return new BasicIter({
+						changeFunc: pos => {
+							const one = this.length > pos ? this.get(pos) : 0;
+							const two = iter.length > pos ? iter.get(pos).reduce((i, j) => i + j) : 0;
+
+							return one * two;
+						},
+						length: this.length < iter.length ? iter.length : this.length
+					});
+			}
 	}
 
 	divide(iter) {
@@ -100,15 +154,28 @@ class IterBasis {
 				length: this.length
 			});
 		else
-			return new BasicIter({
-				changeFunc: pos => {
-					const one = this.length > pos ? this.get(pos) : 0;
-					const two = iter.length > pos ? iter.get(pos) : 1;
+			switch(iter.type) {
+				case constants.types.iter:
+					return new BasicIter({
+						changeFunc: pos => {
+							const one = this.length > pos ? this.get(pos) : 0;
+							const two = iter.length > pos ? iter.get(pos) : 0;
 
-					return one / two;
-				},
-				length: this.length < iter.length ? iter.length : this.length
-			});
+							return one / two;
+						},
+						length: this.length < iter.length ? iter.length : this.length
+					});
+				case constants.types.group:
+					return new BasicIter({
+						changeFunc: pos => {
+							const one = this.length > pos ? this.get(pos) : 0;
+							const two = iter.length > pos ? iter.get(pos).reduce((i, j) => i + j) : 0;
+
+							return one / two;
+						},
+						length: this.length < iter.length ? iter.length : this.length
+					});
+			}
 	}
 
 	next() {

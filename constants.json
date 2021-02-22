@@ -3,5 +3,9 @@
 		"sxes": {},
 		"specs": {},
 		"output": {}
+	},
+	"types": {
+		"group": "group",
+		"iter": "iter"
 	}
 }

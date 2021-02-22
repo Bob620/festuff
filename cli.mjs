@@ -21,6 +21,7 @@ import {cubicSplineInterpolation, linearInterpolation} from './processes/interpo
 import {savitzkyGolay} from './processes/smooth.mjs';
 import {basicIntegration} from './processes/integrate.mjs';
 import {csvExport} from './util/csv.mjs';
+import {IterGroup} from './util/group.mjs';
 
 const allToFull = Object.entries(commandJson).reduce((full, [command, {short}]) => {
 	full[short] = command;
@@ -97,36 +98,43 @@ async function reduce(arr, func, output) {
 }
 
 reduce(commands, async (env, command) => {
+	let specs = []
 	switch(command.calls) {
 		case 'add':
 			env.specs[command.argument] = env.specs[command.attached[0]].add(env.specs[command.attached[1]] === undefined ? parseFloat(command.attached[1]) : env.specs[command.attached[1]]);
 			break;
 		case 'calculateBackground':
-			env.specs[command.argument] = linearBackground(env.specs[command.attached[0]], command.attached[1][0], command.attached[1][1]);
+			env.specs[command.argument] = env.specs[command.attached[0]].do(linearBackground, command.attached[1][0], command.attached[1][1]);
 			break;
 		case 'csv':
-			let specs = [];
+			specs = [];
 			for (const specName of command.attached[0])
 				specs.push({specName, spec: env.specs[specName], frontPad: 0});
 			await csvExport(specs, command.argument);
 			break;
 		case 'cubicSplineInterpolation':
-			env.specs[command.argument] = cubicSplineInterpolation(env.specs[command.attached[0]], command.attached[1]);
+			env.specs[command.argument] = env.specs[command.attached[0]].do(cubicSplineInterpolation, command.attached[1]);
 			break;
 		case 'divide':
 			env.specs[command.argument] = env.specs[command.attached[0]].divide(env.specs[command.attached[1]] === undefined ? parseFloat(command.attached[1]) : env.specs[command.attached[1]]);
 			break;
 		case 'gaussian':
-			env.output[command.argument] = gaussianFit(env.specs[command.attached[0]]);
+			env.output[command.argument] = env.specs[command.attached[0]].do(gaussianFit);
+			break;
+		case 'group':
+			specs = [];
+			for (const specName of command.attached[0].slice(1))
+				specs.push(env.specs[specName]);
+			env.specs[command.argument] = env.specs[command.attached[0][0]].group(...specs)
 			break;
 		case 'integrate':
-			env.specs[command.argument] = basicIntegration(env.specs[command.attached[0]]);
+			env.specs[command.argument] = env.specs[command.attached[0]].do(basicIntegration);
 			break;
 		case 'subtract':
 			env.specs[command.argument] = env.specs[command.attached[0]].subtract(env.specs[command.attached[1]] === undefined ? parseFloat(command.attached[1]) : env.specs[command.attached[1]]);
 			break;
 		case 'linearInterpolation':
-			env.specs[command.argument] = linearInterpolation(env.specs[command.attached[0]], command.attached[1]);
+			env.specs[command.argument] = env.specs[command.attached[0]].do(linearInterpolation, command.attached[1]);
 			break;
 		case 'loadSpec':
 			if (env.sxes[command.argument] === undefined) {
@@ -157,7 +165,7 @@ reduce(commands, async (env, command) => {
 			env.specs[command.argument] = env.specs[command.attached[0]].multiply(env.specs[command.attached[1]] === undefined ? parseFloat(command.attached[1]) : env.specs[command.attached[1]]);
 			break;
 		case 'savitzkyGolay':
-			env.specs[command.argument] = savitzkyGolay(env.specs[command.attached[0]], command.attached[1][0], command.attached[1][1], {windowSize: command.attached[2]});
+			env.specs[command.argument] = env.specs[command.attached[0]].do(savitzkyGolay, command.attached[1][0], command.attached[1][1], {windowSize: command.attached[2]});
 			break;
 	}
 

@@ -116,6 +116,21 @@
 			}
 		]
 	},
+	"group": {
+		"calls": "group",
+		"short": "r",
+		"description": "Group multiple spectrum together",
+		"argument": {
+			"name": "newName",
+			"type": "string"
+		},
+		"minAttached": 2,
+		"attachedRest": {
+			"name": "specName",
+			"type": "string"
+		},
+		"attached": []
+	},
 	"integrate": {
 		"calls": "integrate",
 		"short": "i",
