@@ -142,7 +142,7 @@ export function cubicSplineInterpolation(line = [0], steps = 1) {
 				const output = (h00 * thisValue) + (h10 * tangent) + (h01 * nextValue) + (h11 * nextTangent);
 				recordPos((low + scaledWantedPos) * steps, output);
 
-				if (i === stepsIn)
+				if (i === Math.round(stepsIn))
 					thisOne = output;
 			}
 
