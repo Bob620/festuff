@@ -13,10 +13,12 @@ export class IterGroup {
 		for (const iter of iters) {
 			switch(iter.type) {
 				case constants.types.iter:
-					this.data.iters.push(iter);
+					this.data.iters.push(iter.copy());
 					break;
 				case constants.types.group:
-					this.data.iters.concat(iter.data.iters);
+					for (const it of iter.data.iters) {
+						this.data.iters.push(it.copy());
+					}
 					break;
 			}
 		}
@@ -179,6 +181,10 @@ export class IterGroup {
 			arr.push(values);
 
 		return arr;
+	}
+
+	toString() {
+		return `[${this.data.iters.map(i => i.name)}]`;
 	}
 }
 
