@@ -1,11 +1,13 @@
+import constants from '../constants.json';
+
 import {BasicIter} from '../util/interator.mjs';
 
 export function linearBackground(line = [0], leftIndex = 0, rightIndex = 0) {
 	if (leftIndex < 0 || rightIndex >= line.length)
-		throw "Out of range";
+		throw 'Out of range';
 
 	if (rightIndex === 0)
-		rightIndex = line.length - 1
+		rightIndex = line.length - 1;
 
 	const length = rightIndex - leftIndex + 1;
 	const initial = Array.isArray(line) ? line[leftIndex] : line.get(leftIndex);
@@ -13,10 +15,13 @@ export function linearBackground(line = [0], leftIndex = 0, rightIndex = 0) {
 
 	const changeFunc = pos => initial + (change * pos);
 
-	return new BasicIter({
-		changeFunc,
-		length
-	});
+	return {
+		iter: new BasicIter({
+			changeFunc,
+			length
+		}),
+		type: constants.operations.background
+	};
 }
 
 export default {

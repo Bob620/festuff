@@ -1,3 +1,5 @@
+import constants from '../constants.json';
+
 import {BasicIter} from '../util/interator.mjs';
 
 export function linearInterpolation(line = [0], steps = 1) {
@@ -11,31 +13,33 @@ export function linearInterpolation(line = [0], steps = 1) {
 			if (Math.floor(interPos) === interPos)
 				return line[interPos];
 
-			const low =  Math.floor(interPos);
+			const low = Math.floor(interPos);
 			const high = Math.ceil(interPos);
 			const lowValue = line[low];
 			const highValue = line[high];
 
 			return lowValue * (1 - part) + highValue * part;
-		}
+		};
 	else
 		changeFunc = pos => {
 			const interPos = pos / steps;
 			if (Math.floor(interPos) === interPos)
 				return line.get(interPos);
 
-			const low =  Math.floor(interPos);
+			const low = Math.floor(interPos);
 			const high = Math.ceil(interPos);
 			const lowValue = line.get(low);
 			const highValue = line.get(high);
 
 			return lowValue + ((highValue - lowValue) * (interPos - low));
-		}
+		};
 
-	return new BasicIter({
-		changeFunc,
-		length: (line.length * (steps)) - steps
-	});
+	return {
+		iter: new BasicIter({
+			changeFunc,
+			length: (line.length * (steps)) - steps
+		}), type: constants.operations.interpolateLinear
+	};
 }
 
 function hermite00(cubed, squared) {
@@ -77,14 +81,14 @@ export function cubicSplineInterpolation(line = [0], steps = 1) {
 			h10: hermite10(scaledCubed, scaledSquared, scaledWantedPos),
 			h01: hermite01(scaledCubed, scaledSquared),
 			h11: hermite11(scaledCubed, scaledSquared)
-		}
+		};
 	}
 
 	if (Array.isArray(line))
 		changeFunc = (pos, recordPos) => {
 			// Calculate the actual position in the iterator
 			const interPos = pos / steps;
-			const low =  Math.floor(interPos);
+			const low = Math.floor(interPos);
 
 			// Return the already existing known values when possible
 			if (low === interPos)
@@ -95,8 +99,8 @@ export function cubicSplineInterpolation(line = [0], steps = 1) {
 			// Calculate the low-side and grab the values for spline calculation
 			const thisValue = line[low];
 			const lastValue = low - 1 < 0 ? thisValue : line[low - 1];
-			const nextValue = low + 1 >= line.length ? thisValue : line[low + 1]
-			const nextNextValue = low + 2 >= line.length ? nextValue : line[low + 2]
+			const nextValue = low + 1 >= line.length ? thisValue : line[low + 1];
+			const nextNextValue = low + 2 >= line.length ? nextValue : line[low + 2];
 
 			const tangent = 0.5 * ((nextValue - thisValue) + (thisValue - lastValue));
 			const nextTangent = 0.5 * ((nextNextValue - nextValue) + (nextValue - thisValue));
@@ -113,12 +117,12 @@ export function cubicSplineInterpolation(line = [0], steps = 1) {
 			}
 
 			return thisOne;
-		}
+		};
 	else
 		changeFunc = (pos, recordPos) => {
 			// Calculate the actual position in the iterator
 			const interPos = pos / steps;
-			const low =  Math.floor(interPos);
+			const low = Math.floor(interPos);
 
 			// Return the already existing known values when possible
 			if (low === interPos)
@@ -147,12 +151,14 @@ export function cubicSplineInterpolation(line = [0], steps = 1) {
 			}
 
 			return thisOne;
-		}
+		};
 
-	return new BasicIter({
-		changeFunc,
-		length
-	});
+	return {
+		iter: new BasicIter({
+			changeFunc,
+			length
+		}), type: constants.operations.interpolateCubic
+	};
 }
 
 

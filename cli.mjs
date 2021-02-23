@@ -102,9 +102,11 @@ reduce(commands, async (env, command) => {
 	switch(command.calls) {
 		case 'add':
 			env.specs[command.argument] = env.specs[command.attached[0]].add(env.specs[command.attached[1]] === undefined ? parseFloat(command.attached[1]) : env.specs[command.attached[1]]);
+			env.specs[command.argument].name = command.argument;
 			break;
 		case 'calculateBackground':
 			env.specs[command.argument] = env.specs[command.attached[0]].do(linearBackground, command.attached[1][0], command.attached[1][1]);
+			env.specs[command.argument].name = command.argument;
 			break;
 		case 'csv':
 			specs = [];
@@ -114,27 +116,34 @@ reduce(commands, async (env, command) => {
 			break;
 		case 'cubicSplineInterpolation':
 			env.specs[command.argument] = env.specs[command.attached[0]].do(cubicSplineInterpolation, command.attached[1]);
+			env.specs[command.argument].name = command.argument;
 			break;
 		case 'divide':
 			env.specs[command.argument] = env.specs[command.attached[0]].divide(env.specs[command.attached[1]] === undefined ? parseFloat(command.attached[1]) : env.specs[command.attached[1]]);
+			env.specs[command.argument].name = command.argument;
 			break;
 		case 'gaussian':
 			env.output[command.argument] = env.specs[command.attached[0]].do(gaussianFit);
+			env.specs[command.argument].name = command.argument;
 			break;
 		case 'group':
 			specs = [];
 			for (const specName of command.attached[0].slice(1))
 				specs.push(env.specs[specName]);
 			env.specs[command.argument] = env.specs[command.attached[0][0]].group(...specs)
+			env.specs[command.argument].name = command.argument;
 			break;
 		case 'integrate':
 			env.specs[command.argument] = env.specs[command.attached[0]].do(basicIntegration);
+			env.specs[command.argument].name = command.argument;
 			break;
 		case 'subtract':
 			env.specs[command.argument] = env.specs[command.attached[0]].subtract(env.specs[command.attached[1]] === undefined ? parseFloat(command.attached[1]) : env.specs[command.attached[1]]);
+			env.specs[command.argument].name = command.argument;
 			break;
 		case 'linearInterpolation':
 			env.specs[command.argument] = env.specs[command.attached[0]].do(linearInterpolation, command.attached[1]);
+			env.specs[command.argument].name = command.argument;
 			break;
 		case 'loadSpec':
 			if (env.sxes[command.argument] === undefined) {
@@ -154,18 +163,22 @@ reduce(commands, async (env, command) => {
 
 				const bin = await arr.get(wantedBin);
 				env.specs[command.attached[0]] = new ArrayIter(bin);
+				env.specs[command.attached[0]].name = command.attached[0];
 			} else
 				throw new Error('Unable to find the requested position');
 			break;
 		case 'makeSlice':
 			const [low, high] = command.attached[1];
 			env.specs[command.argument] = env.specs[command.attached[0]].slice(low, high);
+			env.specs[command.argument].name = command.argument;
 			break;
 		case 'multiply':
 			env.specs[command.argument] = env.specs[command.attached[0]].multiply(env.specs[command.attached[1]] === undefined ? parseFloat(command.attached[1]) : env.specs[command.attached[1]]);
+			env.specs[command.argument].name = command.argument;
 			break;
 		case 'savitzkyGolay':
 			env.specs[command.argument] = env.specs[command.attached[0]].do(savitzkyGolay, command.attached[1][0], command.attached[1][1], {windowSize: command.attached[2]});
+			env.specs[command.argument].name = command.argument;
 			break;
 	}
 

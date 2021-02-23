@@ -7,12 +7,22 @@ class IterBasis {
 	constructor(length, dataContext = {}) {
 		dataContext.length = length;
 		dataContext.current = 0;
+		dataContext.operations = dataContext.operations ? dataContext.operations : [];
+		dataContext.name = dataContext.name ? dataContext.name : 'iter';
 		this.data = dataContext;
 	}
 
 	[Symbol.iterator] = () => {
 		return this.slice();
 	};
+
+	set name(name) {
+		this.data.name = 'iter ' + name;
+	}
+
+	get name() {
+		return this.data.name;
+	}
 
 	get type() {
 		return constants.types.iter;
@@ -51,19 +61,39 @@ class IterBasis {
 	}
 
 	do(funcToRun, ...args) {
-		return funcToRun(this, ...args);
+		let {iter, type} = funcToRun(this, ...args);
+		iter.addOperation({
+			type,
+			with: args.toString()
+		});
+
+		return iter;
+	}
+
+	addOperation(operation = {
+		type: '',
+		with: ''
+	}) {
+		this.data.operations.push(operation);
 	}
 
 	add(iter) {
-		if (typeof iter === 'number')
-			return new BasicIter({
+		let returnIter;
+		if (typeof iter === 'number') {
+			let returnIter = new BasicIter({
 				changeFunc: pos => this.get(pos) + iter,
 				length: this.length
 			});
-		else
+
+			returnIter.addOperation({
+				type: constants.operations.add,
+				with: 'number array'
+			});
+			return returnIter;
+		} else
 			switch(iter.type) {
 				case constants.types.iter:
-					return new BasicIter({
+					returnIter = new BasicIter({
 						changeFunc: pos => {
 							const one = this.length > pos ? this.get(pos) : 0;
 							const two = iter.length > pos ? iter.get(pos) : 0;
@@ -72,8 +102,9 @@ class IterBasis {
 						},
 						length: this.length < iter.length ? iter.length : this.length
 					});
+					break;
 				case constants.types.group:
-					return new BasicIter({
+					returnIter = new BasicIter({
 						changeFunc: pos => {
 							const one = this.length > pos ? this.get(pos) : 0;
 							const two = iter.length > pos ? iter.get(pos).reduce((i, j) => i + j) : 0;
@@ -82,19 +113,33 @@ class IterBasis {
 						},
 						length: this.length < iter.length ? iter.length : this.length
 					});
+					break;
 			}
+
+		returnIter.addOperation({
+			type: constants.operations.add,
+			with: iter.name
+		});
+		return returnIter;
 	}
 
 	subtract(iter) {
-		if (typeof iter === 'number')
-			return new BasicIter({
+		let returnIter;
+		if (typeof iter === 'number') {
+			returnIter = new BasicIter({
 				changeFunc: pos => this.get(pos) - iter,
 				length: this.length
 			});
-		else
+
+			returnIter.addOperation({
+				type: constants.operations.add,
+				with: 'number array'
+			});
+			return returnIter;
+		} else
 			switch(iter.type) {
 				case constants.types.iter:
-					return new BasicIter({
+					returnIter = new BasicIter({
 						changeFunc: pos => {
 							const one = this.length > pos ? this.get(pos) : 0;
 							const two = iter.length > pos ? iter.get(pos) : 0;
@@ -103,8 +148,9 @@ class IterBasis {
 						},
 						length: this.length < iter.length ? iter.length : this.length
 					});
+					break;
 				case constants.types.group:
-					return new BasicIter({
+					returnIter = new BasicIter({
 						changeFunc: pos => {
 							const one = this.length > pos ? this.get(pos) : 0;
 							const two = iter.length > pos ? iter.get(pos).reduce((i, j) => i + j) : 0;
@@ -113,19 +159,33 @@ class IterBasis {
 						},
 						length: this.length < iter.length ? iter.length : this.length
 					});
+					break;
 			}
+
+		returnIter.addOperation({
+			type: constants.operations.subtract,
+			with: iter.name
+		});
+		return returnIter;
 	}
 
 	multiply(iter) {
-		if (typeof iter === 'number')
-			return new BasicIter({
+		let returnIter;
+		if (typeof iter === 'number') {
+			returnIter = new BasicIter({
 				changeFunc: pos => this.get(pos) * iter,
 				length: this.length
 			});
-		else
+
+			returnIter.addOperation({
+				type: constants.operations.add,
+				with: 'number array'
+			});
+			return returnIter;
+		} else
 			switch(iter.type) {
 				case constants.types.iter:
-					return new BasicIter({
+					returnIter = new BasicIter({
 						changeFunc: pos => {
 							const one = this.length > pos ? this.get(pos) : 0;
 							const two = iter.length > pos ? iter.get(pos) : 0;
@@ -134,8 +194,9 @@ class IterBasis {
 						},
 						length: this.length < iter.length ? iter.length : this.length
 					});
+					break;
 				case constants.types.group:
-					return new BasicIter({
+					returnIter = new BasicIter({
 						changeFunc: pos => {
 							const one = this.length > pos ? this.get(pos) : 0;
 							const two = iter.length > pos ? iter.get(pos).reduce((i, j) => i + j) : 0;
@@ -144,19 +205,33 @@ class IterBasis {
 						},
 						length: this.length < iter.length ? iter.length : this.length
 					});
+					break;
 			}
+
+		returnIter.addOperation({
+			type: constants.operations.multiply,
+			with: iter.name
+		});
+		return returnIter;
 	}
 
 	divide(iter) {
-		if (typeof iter === 'number')
-			return new BasicIter({
+		let returnIter;
+		if (typeof iter === 'number') {
+			returnIter = new BasicIter({
 				changeFunc: pos => this.get(pos) / iter,
 				length: this.length
 			});
-		else
+
+			returnIter.addOperation({
+				type: constants.operations.add,
+				with: 'number array'
+			});
+			return returnIter;
+		} else
 			switch(iter.type) {
 				case constants.types.iter:
-					return new BasicIter({
+					returnIter = new BasicIter({
 						changeFunc: pos => {
 							const one = this.length > pos ? this.get(pos) : 0;
 							const two = iter.length > pos ? iter.get(pos) : 0;
@@ -165,8 +240,9 @@ class IterBasis {
 						},
 						length: this.length < iter.length ? iter.length : this.length
 					});
+					break;
 				case constants.types.group:
-					return new BasicIter({
+					returnIter = new BasicIter({
 						changeFunc: pos => {
 							const one = this.length > pos ? this.get(pos) : 0;
 							const two = iter.length > pos ? iter.get(pos).reduce((i, j) => i + j) : 0;
@@ -175,7 +251,14 @@ class IterBasis {
 						},
 						length: this.length < iter.length ? iter.length : this.length
 					});
+					break;
 			}
+
+		returnIter.addOperation({
+			type: constants.operations.divide,
+			with: iter.name
+		});
+		return returnIter;
 	}
 
 	next() {
@@ -200,6 +283,18 @@ class IterBasis {
 
 		return arr;
 	}
+
+	toString() {
+		return this.name;
+	}
+
+	copy() {
+		return new BasicIter({
+			changeFunc: pos => this.getPos(pos),
+			length: this.length,
+			history: this.data.history
+		});
+	}
 }
 
 export class IterSlice extends IterBasis {
@@ -207,7 +302,13 @@ export class IterSlice extends IterBasis {
 		super(end - start, {
 			iter,
 			end,
-			start
+			start,
+			operations: iter.operations.map(i => i)
+		});
+
+		this.addOperation({
+			type: constants.operations.slice,
+			with: [start, end]
 		});
 	}
 
@@ -249,7 +350,11 @@ export class MultiIter extends IterBasis {
 		super(length, {
 			iters,
 			length,
-			current: 0
+			current: 0,
+			operations: [{
+				type: constants.operations.concat,
+				with: iters.toString()
+			}]
 		});
 	}
 

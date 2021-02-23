@@ -7,5 +7,19 @@
 	"types": {
 		"group": "group",
 		"iter": "iter"
+	},
+	"operations": {
+		"concat": "concat",
+		"slice": "slice",
+		"add": "add",
+		"subtract": "sub",
+		"multiply": "mul",
+		"divide": "div",
+		"background": "background",
+		"integrateBasic": "basic integration",
+		"interpolateLinear": "linear interpolation",
+		"interpolateCubic": "cubic spline interpolation",
+		"reverse": "reverse",
+		"smoothSavitzkyGolay": "Savitzky-Golay smoothing"
 	}
 }
