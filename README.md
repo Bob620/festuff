@@ -15,6 +15,7 @@ Allows for Compression of Soft X-ray Spectrometer(SXES) data given from a JEOL S
 ----
 
 Visual display of and searching through compressed data from the SXES Compressor. All in terminal for ease of portability.
+
 [PL Viewer](https://github.com/Bob620/PLViewer)
 
 ----
